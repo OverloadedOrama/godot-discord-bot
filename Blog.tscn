@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://Scripts/ForTheBlog.gd" type="Script" id=1]
+
+[node name="HTTPRequest" type="HTTPRequest"]
+script = ExtResource( 1 )
+
+[node name="HeartbeatTimer" type="Timer" parent="."]
+
+[node name="InvalidSessionTimer" type="Timer" parent="."]
+one_shot = true
+
+[connection signal="timeout" from="HeartbeatTimer" to="." method="_on_HeartbeatTimer_timeout"]
+[connection signal="timeout" from="InvalidSessionTimer" to="." method="_on_InvalidSessionTimer_timeout"]
