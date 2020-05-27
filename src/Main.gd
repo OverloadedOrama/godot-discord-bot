@@ -1,6 +1,6 @@
 extends HTTPRequest
 
-var token := "YourTokenHere" #make sure to actually replace this with your token!
+var token := "YourTokenHere" # Make sure to actually replace this with your token!
 var client : WebSocketClient
 var heartbeat_interval : float
 var last_sequence : float
@@ -17,12 +17,12 @@ func _ready() -> void:
 	client.connect("server_close_request", self, "_server_close_request")
 	client.connect("data_received", self, "_data_received")
 
-func _process(delta : float) -> void:
-	#check if the client is not disconnected, there's no point to poll it if it is
+func _process(_delta : float) -> void:
+	# Check if the client is not disconnected, there's no point to poll it if it is
 	if client.get_connection_status() != NetworkedMultiplayerPeer.CONNECTION_DISCONNECTED:
 		client.poll()
 	else:
-		#If it is disconnected, try to resume
+		# If it is disconnected, try to resume
 		client.connect_to_url("wss://gateway.discord.gg/?v=6&encoding=json")
 
 func _connection_established(protocol : String) -> void:
@@ -39,44 +39,44 @@ func _data_received() -> void:
 	var data := packet.get_string_from_utf8()
 	var json_parsed := JSON.parse(data)
 	var dict : Dictionary = json_parsed.result
-	var op = str(dict["op"]) #convert it to string for easier checking
+	var op = str(dict["op"]) # Convert it to string for easier checking
 	print(op)
 	match op:
-		"0": #Opcode 0 Dispatch (Events)
+		"0": # Opcode 0 Dispatch (Events)
 			handle_events(dict)
-		"9": #Opcode 9 Invalid Session
+		"9": # Opcode 9 Invalid Session
 			invalid_session_is_resumable = dict["d"]
 			$InvalidSessionTimer.one_shot = true
 			$InvalidSessionTimer.wait_time = rand_range(1, 5)
 			$InvalidSessionTimer.start()
-		"10": #Opcode 10 Hello
-			#Set our timer
+		"10": # Opcode 10 Hello
+			# Set our timer
 			heartbeat_interval = dict["d"]["heartbeat_interval"] / 1000
 			$HeartbeatTimer.wait_time = heartbeat_interval
 			$HeartbeatTimer.start()
-			
+
 			var d := {}
 			if !session_id:
-				#Send Opcode 2 Identify to the Gateway
+				# Send Opcode 2 Identify to the Gateway
 				d = {
 					"op" : 2,
 					"d" : { "token" : token, "properties" : {} }
 				}
 			else:
-				#Send Opcode 6 Resume to the Gateway
+				# Send Opcode 6 Resume to the Gateway
 				d = {
 					"op" : 6,
 					"d" : { "token" : token, "session_id" : session_id, "seq" : last_sequence}
 				}
 			send_dictionary_as_packet(d)
-		"11": #Opcode 11 Heartbeat ACK
+		"11": # Opcode 11 Heartbeat ACK
 			heartbeat_ack_received = true
 			print("We've received a Heartbeat ACK from the gateway.")
 
 
-func _on_HeartbeatTimer_timeout() -> void: #Send Opcode 1 Heartbeat payloads every heartbeat_interval
+func _on_HeartbeatTimer_timeout() -> void: # Send Opcode 1 Heartbeat payloads every heartbeat_interval
 	if !heartbeat_ack_received:
-		#We haven't received a Heartbeat ACK back, so we'll disconnect
+		# We haven't received a Heartbeat ACK back, so we'll disconnect
 		client.disconnect_from_host(1002)
 		return
 	var d := {"op" : 1, "d" : last_sequence}
@@ -98,18 +98,18 @@ func handle_events(dict : Dictionary) -> void:
 		"GUILD_MEMBER_ADD":
 			var guild_id = dict["d"]["guild_id"]
 			var headers := ["Authorization: Bot %s" % token]
-			
-			#Get all channels of the guild
+
+			# Get all channels of the guild
 			request("https://discordapp.com/api/guilds/%s/channels" % guild_id, headers)
-			var data_received = yield(self, "request_completed") #await
+			var data_received = yield(self, "request_completed") # await
 			var channels = JSON.parse(data_received[3].get_string_from_utf8()).result
 			var channel_id
 			for channel in channels:
-				#Find the first text channel and get its ID
+				# Find the first text channel and get its ID
 				if str(channel["type"]) == "0":
 					channel_id = channel["id"]
 					break
-			if channel_id: #if we found at least one text channel
+			if channel_id: # If we found at least one text channel
 				var username = dict["d"]["user"]["username"]
 				var message_to_send := {"content" : "Welcome %s!" % username}
 				var query := JSON.print(message_to_send)
@@ -118,10 +118,10 @@ func handle_events(dict : Dictionary) -> void:
 		"MESSAGE_CREATE":
 			var channel_id = dict["d"]["channel_id"]
 			var message_content = dict["d"]["content"]
-			
+
 			var headers := ["Authorization: Bot %s" % token, "Content-Type: application/json"]
 			var query : String
-			
+
 			if message_content.to_upper() == "ORAMA":
 				var message_to_send := {"content" : "Interactive"}
 				query = JSON.print(message_to_send)
@@ -140,13 +140,13 @@ func handle_events(dict : Dictionary) -> void:
 func _on_InvalidSessionTimer_timeout() -> void:
 	var d := {}
 	if invalid_session_is_resumable && session_id:
-		#Send Opcode 6 Resume to the Gateway
+		# Send Opcode 6 Resume to the Gateway
 		d = {
 			"op" : 6,
 			"d" : { "token" : token, "session_id" : session_id, "seq" : last_sequence}
 		}
 	else:
-		#Send Opcode 2 Identify to the Gateway
+		# Send Opcode 2 Identify to the Gateway
 		d = {
 			"op" : 2,
 			"d" : { "token" : token, "properties" : {} }

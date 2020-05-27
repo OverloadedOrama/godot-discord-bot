@@ -16,7 +16,7 @@ _global_script_class_icons={
 [application]
 
 config/name="Make Discord Bot"
-run/main_scene="res://Blog.tscn"
+run/main_scene="res://src/Main.tscn"
 config/icon="res://icon.png"
 
 [debug]
@@ -26,4 +26,3 @@ gdscript/warnings/return_value_discarded=false
 [rendering]
 
 quality/driver/driver_name="GLES2"
-environment/default_environment="res://default_env.tres"
