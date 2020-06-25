@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: "godot-ci test export"
+name: "godot-ci-export"
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
@@ -74,3 +74,24 @@ jobs:
         with:
           name: mac
           path: ./build/mac/
+
+  export-web:
+    name: Web Export
+    runs-on: ubuntu-latest
+    container:
+      image: docker://barichello/godot-ci:3.2.1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Setup
+        run: |
+          mkdir -v -p build/web ~/.local/share/godot/templates
+          mv /root/.local/share/godot/templates/${GODOT_VERSION}.stable ~/.local/share/godot/templates/${GODOT_VERSION}.stable
+      - name: Web Build
+        run: godot -v --export "HTML5" ./build/web/$EXPORT_NAME.zip
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@releases/v3
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: ./build/web # The folder the action should deploy.
