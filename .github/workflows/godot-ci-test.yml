@@ -22,7 +22,7 @@ jobs:
       image: docker://barichello/godot-ci:3.2.1
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v6
       - name: Setup
         run: |
           mkdir -v -p build/windows  ~/.local/share/godot/templates
@@ -30,7 +30,7 @@ jobs:
       - name: Windows Build
         run: godot -v --export "Windows Desktop" ./build/windows/$EXPORT_NAME.exe
       - name: Upload Artifact
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v7
         with:
           name: windows
           path: ./build/windows/
@@ -42,7 +42,7 @@ jobs:
       image: docker://barichello/godot-ci:3.2.1
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v6
       - name: Setup
         run: |
           mkdir -v -p build/linux ~/.local/share/godot/templates
@@ -50,7 +50,7 @@ jobs:
       - name: Linux Build
         run: godot -v --export "Linux/X11" ./build/linux/$EXPORT_NAME.x86_64
       - name: Upload Artifact
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v7
         with:
           name: linux
           path: ./build/linux/
@@ -62,7 +62,7 @@ jobs:
       image: docker://barichello/godot-ci:3.2.1
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v6
       - name: Setup
         run: |
           mkdir -v -p build/mac ~/.local/share/godot/templates
@@ -70,7 +70,7 @@ jobs:
       - name: Mac Build
         run: godot -v --export "Mac OSX" ./build/mac/$EXPORT_NAME.zip
       - name: Upload Artifact
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v7
         with:
           name: mac
           path: ./build/mac/
@@ -82,7 +82,7 @@ jobs:
       image: docker://barichello/godot-ci:3.2.1
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v6
       - name: Setup
         run: |
           mkdir -v -p build/web ~/.local/share/godot/templates
@@ -93,7 +93,7 @@ jobs:
         run: |
           apt-get update && apt-get install -y rsync
       - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@releases/v3
+        uses: JamesIves/github-pages-deploy-action@releases/v4
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: gh-pages # The branch the action should deploy to.
